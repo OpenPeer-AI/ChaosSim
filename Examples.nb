@@ -1,0 +1,436 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* Examples.nb - ChaosSim Example Simulations *)
+(* Practical demonstrations of chaos simulation capabilities *)
+
+(* ::Title:: *)
+(*ChaosSim Examples and Demonstrations*)
+
+
+(* ::Section:: *)
+(*Setup*)
+
+
+(* Load ChaosSim framework *)
+Get[FileNameJoin[{NotebookDirectory[], "ChaosSim.nb"}]]
+Get[FileNameJoin[{NotebookDirectory[], "Visualizations.nb"}]]
+
+Print[Style["ChaosSim Examples Loaded", Bold, 16, Blue]]
+Print["Run each section to see different chaos simulations in action.\n"]
+
+
+(* ::Section:: *)
+(*Example 1: Basic Bernoulli Chaos*)
+
+
+(* ::Text:: *)
+(*This example demonstrates how Bernoulli numbers create weighted chaos patterns.*)
+(*The Bernoulli numbers provide non-uniform probability distributions that*)
+(*generate interesting chaotic behaviors.*)
+
+
+Print[Style["=== Example 1: Bernoulli Chaos Simulation ===", Bold, 14, Purple]]
+
+(* Generate Bernoulli chaos with 500 iterations *)
+bernoulliExample = SimulateBernoulliChaos[500, 12];
+
+(* Display statistics *)
+Print["Statistics:"]
+Print["  Mean: ", Mean[bernoulliExample]]
+Print["  Standard Deviation: ", StandardDeviation[bernoulliExample]]
+Print["  Min: ", Min[bernoulliExample], " | Max: ", Max[bernoulliExample]]
+
+(* Visualize *)
+ListPlot[bernoulliExample,
+  PlotStyle -> {Blue, PointSize[Small]},
+  PlotLabel -> Style["Example 1: Bernoulli Chaos", Bold, 14],
+  AxesLabel -> {"Iteration", "State"},
+  ImageSize -> Large,
+  GridLines -> Automatic
+]
+
+
+(* ::Section:: *)
+(*Example 2: Fibonacci Golden Spiral*)
+
+
+(* ::Text:: *)
+(*This creates a 3D golden spiral based on Fibonacci numbers.*)
+(*The spiral demonstrates the connection between Fibonacci sequences*)
+(*and natural chaotic patterns found in nature.*)
+
+
+Print[Style["\n=== Example 2: Fibonacci Golden Spiral ===", Bold, 14, Purple]]
+
+(* Generate 3D Fibonacci spiral *)
+fibonacciSpiralPoints = FibonacciSpiral3D[20, 100];
+
+Print["Generated ", Length[fibonacciSpiralPoints], " points in golden spiral"]
+Print["Golden Ratio ≈ ", N[GoldenRatio, 6]]
+
+(* Visualize in 3D *)
+ListPointPlot3D[fibonacciSpiralPoints,
+  PlotStyle -> Directive[PointSize[Small]],
+  ColorFunction -> Function[{x, y, z}, 
+    ColorData["SunsetColors"][Norm[{x, y}]]
+  ],
+  BoxRatios -> {1, 1, 0.6},
+  ImageSize -> Large,
+  PlotLabel -> Style["Example 2: Fibonacci Golden Spiral", Bold, 14],
+  AxesLabel -> {"X", "Y", "Z"},
+  Background -> GrayLevel[0.95],
+  ViewPoint -> {2, -2, 1.5}
+]
+
+
+(* ::Section:: *)
+(*Example 3: Nash Equilibrium in Prisoner's Dilemma*)
+
+
+(* ::Text:: *)
+(*Classic game theory example: Finding Nash equilibrium in the Prisoner's Dilemma.*)
+(*This demonstrates how game theory integrates with chaos simulation.*)
+
+
+Print[Style["\n=== Example 3: Prisoner's Dilemma Nash Equilibrium ===", Bold, 14, Purple]]
+
+(* Define Prisoner's Dilemma payoff matrices *)
+(* (Cooperate, Defect) for each player *)
+prisonerPayoff1 = {{-1, -3}, {0, -2}};  (* Player 1 payoffs *)
+prisonerPayoff2 = {{-1, 0}, {-3, -2}};  (* Player 2 payoffs *)
+
+Print["Player 1 Payoff Matrix (rows: P1 strategy, cols: P2 strategy):"]
+Print[MatrixForm[prisonerPayoff1]]
+
+Print["\nPlayer 2 Payoff Matrix:"]
+Print[MatrixForm[prisonerPayoff2]]
+
+(* Find Nash equilibrium *)
+equilibria = FindNashEquilibrium[prisonerPayoff1, prisonerPayoff2];
+
+Print["\nNash Equilibrium found at: ", equilibria]
+Print["Interpretation: Both players choosing Defect (strategy 2, 2)"]
+
+(* Visualize payoff matrices *)
+GraphicsRow[{
+  ArrayPlot[prisonerPayoff1,
+    ColorFunction -> "Rainbow",
+    PlotLabel -> "Player 1 Payoffs",
+    FrameLabel -> {"P2 Strategy", "P1 Strategy"},
+    PlotLegends -> Automatic
+  ],
+  ArrayPlot[prisonerPayoff2,
+    ColorFunction -> "Rainbow",
+    PlotLabel -> "Player 2 Payoffs",
+    FrameLabel -> {"P2 Strategy", "P1 Strategy"},
+    PlotLegends -> Automatic
+  ]
+}, ImageSize -> Large]
+
+
+(* ::Section:: *)
+(*Example 4: Chaotic Game Evolution*)
+
+
+(* ::Text:: *)
+(*Simulate a game where payoff matrices evolve chaotically over time.*)
+(*This shows how Nash equilibria shift in dynamic, chaotic environments.*)
+
+
+Print[Style["\n=== Example 4: Chaotic Game Evolution ===", Bold, 14, Purple]]
+
+(* Run chaotic game simulation *)
+chaosGameHistory = ChaosGameSimulation[100, 2, 0.3];
+
+(* Extract data *)
+rounds = chaosGameHistory[[All, 1]];
+strategies = chaosGameHistory[[All, 2]];
+equilibriaCounts = Length /@ chaosGameHistory[[All, 3]];
+
+Print["Simulation complete: ", Length[rounds], " rounds"]
+Print["Average equilibria per round: ", Mean[equilibriaCounts]]
+
+(* Visualize strategy evolution *)
+ListLinePlot[
+  {strategies[[All, 1]], strategies[[All, 2]]},
+  PlotStyle -> {{Blue, Thick}, {Red, Thick}},
+  PlotLabel -> Style["Example 4: Strategy Evolution in Chaotic Game", Bold, 14],
+  AxesLabel -> {"Round", "Strategy Choice"},
+  PlotLegends -> {"Player 1", "Player 2"},
+  ImageSize -> Large,
+  GridLines -> Automatic
+]
+
+
+(* ::Section:: *)
+(*Example 5: Multi-Agent Chaos System*)
+
+
+(* ::Text:: *)
+(*Simulate 5 agents seeking Nash equilibrium in a chaotic environment.*)
+(*Agents adjust their strategies to minimize conflicts, creating emergent patterns.*)
+
+
+Print[Style["\n=== Example 5: Multi-Agent Chaos Equilibrium ===", Bold, 14, Purple]]
+
+(* Run multi-agent simulation *)
+multiAgentChaos = MultiAgentChaosEquilibrium[5, 200];
+
+(* Extract agent states over time *)
+agentStates = multiAgentChaos[[All, 2]];
+
+Print["Number of agents: 5"]
+Print["Iterations: 200"]
+Print["Final agent states: ", agentStates[[-1]]]
+Print["State convergence: ", StandardDeviation[agentStates[[-1]]]]
+
+(* Visualize all agents *)
+ListLinePlot[
+  Table[agentStates[[All, i]], {i, 1, 5}],
+  PlotStyle -> Table[Directive[Thick, ColorData[97][i]], {i, 1, 5}],
+  PlotLabel -> Style["Example 5: Multi-Agent State Evolution", Bold, 14],
+  AxesLabel -> {"Iteration", "Agent State"},
+  PlotLegends -> Table[StringTemplate["Agent ``"][i], {i, 1, 5}],
+  ImageSize -> Large,
+  GridLines -> Automatic
+]
+
+
+(* ::Section:: *)
+(*Example 6: Unified Chaos Simulation*)
+
+
+(* ::Text:: *)
+(*Combines all three chaos types (Bernoulli, Fibonacci, Nash) into one system.*)
+(*This demonstrates the full power of ChaosSim's integrated approach.*)
+
+
+Print[Style["\n=== Example 6: Unified Chaos System ===", Bold, 14, Purple]]
+
+(* Run unified simulation *)
+unifiedChaos = UnifiedChaosSimulation[400];
+
+(* Analyze correlations *)
+correlations = ChaosCorrelationAnalysis[unifiedChaos];
+
+Print["Unified chaos simulation complete"]
+Print["Data points: ", Length[unifiedChaos]]
+Print["\nCorrelation Analysis:"]
+Print[Grid[
+  Prepend[correlations, {"Component Pair", "Correlation"}],
+  Frame -> All,
+  Background -> {None, {LightBlue, White}}
+]]
+
+(* Visualize in 3D phase space *)
+ListPointPlot3D[unifiedChaos,
+  PlotStyle -> Directive[PointSize[Small]],
+  ColorFunction -> Function[{x, y, z}, 
+    ColorData["Rainbow"][z]
+  ],
+  BoxRatios -> {1, 1, 1},
+  ImageSize -> Large,
+  PlotLabel -> Style["Example 6: Unified Chaos Phase Space", Bold, 14],
+  AxesLabel -> {"Bernoulli", "Fibonacci", "Nash"},
+  Background -> Black,
+  ViewPoint -> {1.5, -2.5, 1.2}
+]
+
+
+(* ::Section:: *)
+(*Example 7: Bernoulli 3D Attractor*)
+
+
+(* ::Text:: *)
+(*A beautiful 3D attractor generated using Bernoulli number weights.*)
+(*This creates complex, non-repeating patterns in 3D space.*)
+
+
+Print[Style["\n=== Example 7: Bernoulli 3D Attractor ===", Bold, 14, Purple]]
+
+(* Generate attractor *)
+attractorPoints = BernoulliAttractor[3000, 3];
+
+Print["Generated ", Length[attractorPoints], " points"]
+Print["Attractor bounds:"]
+Print["  X: [", Min[attractorPoints[[All, 1]]], ", ", Max[attractorPoints[[All, 1]]], "]"]
+Print["  Y: [", Min[attractorPoints[[All, 2]]], ", ", Max[attractorPoints[[All, 2]]], "]"]
+Print["  Z: [", Min[attractorPoints[[All, 3]]], ", ", Max[attractorPoints[[All, 3]]], "]"]
+
+(* Create stunning visualization *)
+ListPointPlot3D[attractorPoints,
+  PlotStyle -> Directive[PointSize[Tiny]],
+  ColorFunction -> Function[{x, y, z}, 
+    ColorData["DarkRainbow"][Norm[{x, y, z}]/2]
+  ],
+  BoxRatios -> {1, 1, 1},
+  ImageSize -> Large,
+  PlotLabel -> Style["Example 7: Bernoulli Attractor", Bold, 14],
+  AxesLabel -> {"X", "Y", "Z"},
+  Background -> Black,
+  Boxed -> False,
+  ViewPoint -> {2, -2, 1}
+]
+
+
+(* ::Section:: *)
+(*Example 8: Fibonacci Chaos Map*)
+
+
+(* ::Text:: *)
+(*Creates a chaotic map using Fibonacci ratios as the driving parameter.*)
+(*Shows bifurcations and sensitivity to initial conditions.*)
+
+
+Print[Style["\n=== Example 8: Fibonacci Chaos Map ===", Bold, 14, Purple]]
+
+(* Generate Fibonacci chaos map *)
+fibChaosMap = FibonacciChaosMap[800];
+
+Print["Generated ", Length[fibChaosMap], " iterations"]
+Print["Mean value: ", Mean[fibChaosMap]]
+Print["Chaos entropy: ", ChaosEntropy[fibChaosMap]]
+
+(* Create phase space plot *)
+GraphicsRow[{
+  ListPlot[fibChaosMap,
+    PlotStyle -> {Orange, PointSize[Small]},
+    PlotLabel -> "Time Series",
+    AxesLabel -> {"Iteration", "Value"},
+    ImageSize -> Medium
+  ],
+  ListPlot[Partition[fibChaosMap, 2, 1],
+    PlotStyle -> {Red, PointSize[Tiny]},
+    PlotLabel -> "Phase Space",
+    AxesLabel -> {"x(t)", "x(t+1)"},
+    ImageSize -> Medium,
+    AspectRatio -> 1
+  ]
+}, ImageSize -> Large, 
+  PlotLabel -> Style["Example 8: Fibonacci Chaos Map Analysis", Bold, 14]]
+
+
+(* ::Section:: *)
+(*Example 9: Comparative Chaos Analysis*)
+
+
+(* ::Text:: *)
+(*Compare all three types of chaos side-by-side.*)
+(*Reveals unique characteristics of each approach.*)
+
+
+Print[Style["\n=== Example 9: Comparative Chaos Analysis ===", Bold, 14, Purple]]
+
+(* Generate all three types *)
+iterations = 400;
+bernoulliChaos = SimulateBernoulliChaos[iterations, 12];
+fibonacciChaos = FibonacciChaosMap[iterations];
+nashChaos = MultiAgentChaosEquilibrium[5, iterations][[All, 2, 1]];
+
+(* Calculate statistics *)
+Print["Chaos Type Statistics:"]
+Print[Grid[{
+  {"Type", "Mean", "Std Dev", "Entropy"},
+  {"Bernoulli", Mean[bernoulliChaos], StandardDeviation[bernoulliChaos], 
+   ChaosEntropy[bernoulliChaos]},
+  {"Fibonacci", Mean[fibonacciChaos], StandardDeviation[fibonacciChaos], 
+   ChaosEntropy[fibonacciChaos]},
+  {"Nash", Mean[nashChaos], StandardDeviation[nashChaos], 
+   ChaosEntropy[nashChaos]}
+}, Frame -> All, Background -> {None, {LightYellow, White}}]]
+
+(* Visualize comparison *)
+ListLinePlot[
+  {bernoulliChaos, fibonacciChaos, nashChaos},
+  PlotStyle -> {
+    {Blue, Thick, Opacity[0.7]},
+    {Orange, Thick, Opacity[0.7]},
+    {Green, Thick, Opacity[0.7]}
+  },
+  PlotLabel -> Style["Example 9: Chaos Type Comparison", Bold, 14],
+  AxesLabel -> {"Iteration", "State Value"},
+  PlotLegends -> {"Bernoulli", "Fibonacci", "Nash Equilibrium"},
+  ImageSize -> Large,
+  GridLines -> Automatic
+]
+
+
+(* ::Section:: *)
+(*Example 10: Custom Chaos Application*)
+
+
+(* ::Text:: *)
+(*A practical example: Using chaos for random sampling in a market model.*)
+(*Simulates price fluctuations driven by chaotic dynamics.*)
+
+
+Print[Style["\n=== Example 10: Chaotic Market Simulation ===", Bold, 14, Purple]]
+
+SimulateChaoticMarket[days_Integer, initialPrice_Real: 100.0] := Module[
+  {chaos, prices, returns},
+  
+  (* Generate Bernoulli chaos for market volatility *)
+  chaos = SimulateBernoulliChaos[days, 10];
+  
+  (* Convert chaos to price movements *)
+  returns = (chaos - 0.5) * 0.1; (* Scale to ±5% daily returns *)
+  
+  (* Calculate cumulative prices *)
+  prices = FoldList[
+    #1 * (1 + #2) &,
+    initialPrice,
+    returns
+  ];
+  
+  prices
+]
+
+(* Run market simulation *)
+marketPrices = SimulateChaoticMarket[250, 100.0];
+
+Print["Market simulation: 250 trading days"]
+Print["Initial price: $100.00"]
+Print["Final price: $", marketPrices[[-1]]]
+Print["Max price: $", Max[marketPrices]]
+Print["Min price: $", Min[marketPrices]]
+Print["Total return: ", (marketPrices[[-1]] - 100.0), "%"]
+
+(* Visualize market *)
+ListLinePlot[marketPrices,
+  PlotStyle -> {Darker[Green], Thick},
+  PlotLabel -> Style["Example 10: Chaotic Market Prices", Bold, 14],
+  AxesLabel -> {"Trading Day", "Price ($)"},
+  ImageSize -> Large,
+  Filling -> Axis,
+  FillingStyle -> Opacity[0.2, Green],
+  GridLines -> Automatic
+]
+
+
+(* ::Section:: *)
+(*Summary*)
+
+
+Print[Style["\n\n" <> StringRepeat["=", 60], Bold, Blue]]
+Print[Style["ChaosSim Examples Complete!", Bold, 18, Blue]]
+Print[Style[StringRepeat["=", 60] <> "\n", Bold, Blue]]
+
+Print["You have explored:"]
+Print["  ✓ Bernoulli number-based chaos generation"]
+Print["  ✓ Fibonacci sequence chaotic patterns"]
+Print["  ✓ Nash equilibrium in game theory"]
+Print["  ✓ Multi-agent chaos systems"]
+Print["  ✓ Unified chaos simulations"]
+Print["  ✓ 3D attractors and visualizations"]
+Print["  ✓ Practical applications (market simulation)"]
+
+Print["\nNext steps:"]
+Print["  • Modify parameters in any example to explore variations"]
+Print["  • Create your own chaos combinations"]
+Print["  • Use Visualizations.nb for advanced plotting"]
+Print["  • Refer to README.md for detailed documentation"]
+
+Print[Style["\nHappy chaos simulation! 🌀", Bold, 16, Purple]]

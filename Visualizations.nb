@@ -1,0 +1,418 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* Visualizations.nb - ChaosSim Visualization Suite *)
+(* Advanced plotting and visualization for chaotic systems *)
+
+(* ::Title:: *)
+(*ChaosSim Visualizations*)
+
+
+(* ::Section:: *)
+(*Setup and Initialization*)
+
+
+(* Load main ChaosSim functions *)
+Get[FileNameJoin[{NotebookDirectory[], "ChaosSim.nb"}]]
+
+Print["Visualization suite initialized."]
+
+
+(* ::Section:: *)
+(*Bernoulli Number Chaos Visualizations*)
+
+
+(* ::Subsection:: *)
+(*Time Series Plots*)
+
+
+VisualizeBernoulliChaos[iterations_Integer: 1000, complexity_Integer: 12] := Module[
+  {data, plot1, plot2, plot3},
+  
+  data = SimulateBernoulliChaos[iterations, complexity];
+  
+  (* Time series plot *)
+  plot1 = ListPlot[data,
+    PlotStyle -> {Blue, PointSize[Small]},
+    PlotLabel -> Style["Bernoulli Chaos Time Series", Bold, 16],
+    AxesLabel -> {Style["Iteration", 14], Style["State Value", 14]},
+    ImageSize -> Large,
+    GridLines -> Automatic,
+    GridLinesStyle -> LightGray
+  ];
+  
+  (* Phase space plot *)
+  plot2 = ListPlot[
+    Partition[data, 2, 1],
+    PlotStyle -> {Red, PointSize[Tiny]},
+    PlotLabel -> Style["Bernoulli Phase Space", Bold, 16],
+    AxesLabel -> {Style["x(t)", 14], Style["x(t+1)", 14]},
+    ImageSize -> Large,
+    AspectRatio -> 1
+  ];
+  
+  (* Histogram *)
+  plot3 = Histogram[data,
+    PlotLabel -> Style["Bernoulli Chaos Distribution", Bold, 16],
+    AxesLabel -> {Style["State Value", 14], Style["Frequency", 14]},
+    ImageSize -> Large,
+    ChartStyle -> Blue
+  ];
+  
+  GraphicsGrid[{{plot1}, {plot2}, {plot3}}, ImageSize -> Full]
+]
+
+
+(* 3D Bernoulli Attractor *)
+VisualizeBernoulliAttractor3D[steps_Integer: 2000] := Module[
+  {points, plot},
+  
+  points = BernoulliAttractor[steps, 3];
+  
+  plot = ListPointPlot3D[points,
+    PlotStyle -> Directive[PointSize[Tiny], ColorFunction -> "Rainbow"],
+    BoxRatios -> {1, 1, 1},
+    ImageSize -> Large,
+    PlotLabel -> Style["Bernoulli 3D Chaos Attractor", Bold, 16],
+    AxesLabel -> {Style["X", 14], Style["Y", 14], Style["Z", 14]},
+    ViewPoint -> {1.3, -2.4, 2.0},
+    Background -> Black,
+    Boxed -> True
+  ];
+  
+  plot
+]
+
+
+(* Animated Bernoulli chaos evolution *)
+AnimateBernoulliChaos[maxIterations_Integer: 500] := Animate[
+  Module[{data},
+    data = SimulateBernoulliChaos[n, 12];
+    ListPlot[data,
+      PlotStyle -> {Blue, PointSize[Medium]},
+      PlotLabel -> Style[StringTemplate["Bernoulli Chaos: `` iterations"][n], Bold, 14],
+      PlotRange -> {{0, maxIterations}, {0, 1}},
+      ImageSize -> Large,
+      AspectRatio -> 0.6
+    ]
+  ],
+  {n, 10, maxIterations, 10}
+]
+
+
+(* ::Section:: *)
+(*Fibonacci Chaos Visualizations*)
+
+
+(* ::Subsection:: *)
+(*Golden Ratio and Spiral Patterns*)
+
+
+VisualizeFibonacciChaos[depth_Integer: 100] := Module[
+  {data, spiralData, plot1, plot2, plot3},
+  
+  data = FibonacciChaosSequence[depth, 0.15];
+  spiralData = FibonacciSpiral3D[15, 80];
+  
+  (* Chaos sequence plot *)
+  plot1 = ListLinePlot[data,
+    PlotStyle -> {Orange, Thick},
+    PlotLabel -> Style["Fibonacci Chaos Sequence", Bold, 16],
+    AxesLabel -> {Style["Index", 14], Style["Value", 14]},
+    ImageSize -> Large,
+    Filling -> Axis,
+    FillingStyle -> Opacity[0.3, Orange]
+  ];
+  
+  (* Golden ratio convergence *)
+  plot2 = ListLinePlot[
+    Table[GoldenRatioApproximation[n], {n, 2, depth}],
+    PlotStyle -> {Green, Thick},
+    PlotLabel -> Style["Golden Ratio Convergence", Bold, 16],
+    AxesLabel -> {Style["Fibonacci Index", 14], Style["Ratio", 14]},
+    GridLines -> {{}, {GoldenRatio}},
+    GridLinesStyle -> Directive[Red, Dashed],
+    ImageSize -> Large
+  ];
+  
+  (* 3D Spiral *)
+  plot3 = ListPointPlot3D[spiralData,
+    PlotStyle -> Directive[PointSize[Small]],
+    ColorFunction -> Function[{x, y, z}, ColorData["SunsetColors"][z]],
+    BoxRatios -> {1, 1, 0.5},
+    PlotLabel -> Style["Fibonacci Golden Spiral", Bold, 16],
+    ImageSize -> Large,
+    Background -> GrayLevel[0.95]
+  ];
+  
+  GraphicsGrid[{{plot1, plot2}, {plot3, ""}}, ImageSize -> Full]
+]
+
+
+(* Fibonacci chaos map bifurcation *)
+FibonacciBifurcationDiagram[iterations_Integer: 200, samples_Integer: 50] := Module[
+  {data, points},
+  
+  points = Flatten[
+    Table[
+      Module[{seq},
+        seq = FibonacciChaosMap[iterations];
+        Table[{i/samples, seq[[j]]}, {j, iterations - 100, iterations}]
+      ],
+      {i, 1, samples}
+    ],
+    1
+  ];
+  
+  ListPlot[points,
+    PlotStyle -> {Black, PointSize[Tiny]},
+    PlotLabel -> Style["Fibonacci Chaos Bifurcation", Bold, 16],
+    AxesLabel -> {Style["Parameter", 14], Style["State", 14]},
+    ImageSize -> Large,
+    AspectRatio -> 0.7
+  ]
+]
+
+
+(* ::Section:: *)
+(*Nash Equilibrium Visualizations*)
+
+
+(* ::Subsection:: *)
+(*Game Theory and Multi-Agent Systems*)
+
+
+VisualizeNashEquilibrium[payoff1_List, payoff2_List] := Module[
+  {equilibria, heatmap1, heatmap2, combined},
+  
+  equilibria = FindNashEquilibrium[payoff1, payoff2];
+  
+  (* Heatmap for player 1 payoffs *)
+  heatmap1 = ArrayPlot[payoff1,
+    ColorFunction -> "TemperatureMap",
+    PlotLabel -> Style["Player 1 Payoff Matrix", Bold, 14],
+    FrameLabel -> {Style["Player 2 Strategy", 12], Style["Player 1 Strategy", 12]},
+    ImageSize -> Medium,
+    PlotLegends -> Automatic
+  ];
+  
+  (* Heatmap for player 2 payoffs *)
+  heatmap2 = ArrayPlot[payoff2,
+    ColorFunction -> "TemperatureMap",
+    PlotLabel -> Style["Player 2 Payoff Matrix", Bold, 14],
+    FrameLabel -> {Style["Player 2 Strategy", 12], Style["Player 1 Strategy", 12]},
+    ImageSize -> Medium,
+    PlotLegends -> Automatic
+  ];
+  
+  (* Display equilibria *)
+  Print[Style["Nash Equilibria Found: ", Bold], equilibria];
+  
+  GraphicsRow[{heatmap1, heatmap2}, ImageSize -> Full]
+]
+
+
+(* Chaos game simulation visualization *)
+VisualizeChaosGame[rounds_Integer: 150] := Module[
+  {history, strategies, equilibriaCount, plot1, plot2},
+  
+  history = ChaosGameSimulation[rounds, 2, 0.25];
+  
+  (* Extract strategy evolution *)
+  strategies = history[[All, 2]];
+  equilibriaCount = Length /@ history[[All, 3]];
+  
+  (* Strategy evolution plot *)
+  plot1 = ListLinePlot[
+    {strategies[[All, 1]], strategies[[All, 2]]},
+    PlotStyle -> {{Blue, Thick}, {Red, Thick}},
+    PlotLabel -> Style["Strategy Evolution in Chaos Game", Bold, 16],
+    AxesLabel -> {Style["Round", 14], Style["Strategy", 14]},
+    PlotLegends -> {"Player 1", "Player 2"},
+    ImageSize -> Large
+  ];
+  
+  (* Equilibria count over time *)
+  plot2 = ListLinePlot[equilibriaCount,
+    PlotStyle -> {Purple, Thick},
+    PlotLabel -> Style["Number of Nash Equilibria Over Time", Bold, 16],
+    AxesLabel -> {Style["Round", 14], Style["Equilibria Count", 14]},
+    Filling -> Axis,
+    FillingStyle -> Opacity[0.3, Purple],
+    ImageSize -> Large
+  ];
+  
+  GraphicsColumn[{plot1, plot2}, ImageSize -> Full]
+]
+
+
+(* Multi-agent chaos equilibrium *)
+VisualizeMultiAgentChaos[agents_Integer: 6, iterations_Integer: 150] := Module[
+  {chaos, stateEvolution, fitnessEvolution, plot1, plot2},
+  
+  chaos = MultiAgentChaosEquilibrium[agents, iterations];
+  
+  (* Extract state and fitness data *)
+  stateEvolution = chaos[[All, 2]];
+  fitnessEvolution = chaos[[All, 3]];
+  
+  (* Agent state evolution *)
+  plot1 = ListLinePlot[
+    Table[stateEvolution[[All, i]], {i, 1, agents}],
+    PlotStyle -> Table[ColorData[97][i], {i, 1, agents}],
+    PlotLabel -> Style["Multi-Agent State Evolution", Bold, 16],
+    AxesLabel -> {Style["Iteration", 14], Style["Agent State", 14]},
+    PlotLegends -> Table[StringTemplate["Agent ``"][i], {i, 1, agents}],
+    ImageSize -> Large
+  ];
+  
+  (* Fitness landscape *)
+  plot2 = ListPlot3D[
+    Table[{chaos[[i, 1]], j, stateEvolution[[i, j]]}, 
+      {i, 1, Min[100, iterations]}, {j, 1, agents}],
+    ColorFunction -> "Rainbow",
+    PlotLabel -> Style["Agent Fitness Landscape", Bold, 16],
+    AxesLabel -> {Style["Iteration", 12], Style["Agent", 12], Style["State", 12]},
+    ImageSize -> Large,
+    Mesh -> None
+  ];
+  
+  GraphicsColumn[{plot1, plot2}, ImageSize -> Full]
+]
+
+
+(* ::Section:: *)
+(*Unified Chaos Visualization*)
+
+
+(* ::Subsection:: *)
+(*Combined System Analysis*)
+
+
+VisualizeUnifiedChaos[steps_Integer: 500] := Module[
+  {data, correlations, plot1, plot2, plot3},
+  
+  data = UnifiedChaosSimulation[steps];
+  correlations = ChaosCorrelationAnalysis[data];
+  
+  (* 3D phase space *)
+  plot1 = ListPointPlot3D[data,
+    PlotStyle -> Directive[PointSize[Small]],
+    ColorFunction -> Function[{x, y, z}, ColorData["Rainbow"][z]],
+    BoxRatios -> {1, 1, 1},
+    PlotLabel -> Style["Unified Chaos Phase Space", Bold, 16],
+    AxesLabel -> {Style["Bernoulli", 12], Style["Fibonacci", 12], Style["Nash", 12]},
+    ImageSize -> Large,
+    ViewPoint -> {1.5, -2.0, 1.5}
+  ];
+  
+  (* Component time series *)
+  plot2 = ListLinePlot[
+    {data[[All, 1]], data[[All, 2]], data[[All, 3]]},
+    PlotStyle -> {{Blue, Thick}, {Orange, Thick}, {Green, Thick}},
+    PlotLabel -> Style["Chaos Components Over Time", Bold, 16],
+    AxesLabel -> {Style["Step", 14], Style["Value", 14]},
+    PlotLegends -> {"Bernoulli", "Fibonacci", "Nash"},
+    ImageSize -> Large
+  ];
+  
+  (* Correlation matrix *)
+  plot3 = BarChart[correlations[[All, 2]],
+    ChartLabels -> correlations[[All, 1]],
+    PlotLabel -> Style["Component Correlations", Bold, 16],
+    AxesLabel -> {None, Style["Correlation", 14]},
+    ChartStyle -> "Pastel",
+    ImageSize -> Large
+  ];
+  
+  Print[Style["Correlation Analysis:", Bold]];
+  Print[Grid[correlations, Frame -> All]];
+  
+  GraphicsGrid[{{plot1}, {plot2}, {plot3}}, ImageSize -> Full]
+]
+
+
+(* Interactive chaos explorer *)
+ManipulateChaosParameters[] := Manipulate[
+  Module[{data},
+    data = SimulateBernoulliChaos[iterations, complexity];
+    ListPlot[data,
+      PlotStyle -> {colorScheme, PointSize[pointSize]},
+      PlotLabel -> Style["Interactive Chaos Explorer", Bold, 16],
+      ImageSize -> Large,
+      AspectRatio -> 0.7
+    ]
+  ],
+  {{iterations, 300, "Iterations"}, 50, 1000, 50},
+  {{complexity, 10, "Complexity"}, 2, 20, 1},
+  {{pointSize, 0.005, "Point Size"}, 0.001, 0.02, 0.001},
+  {{colorScheme, Blue, "Color"}, {Blue, Red, Green, Orange, Purple}}
+]
+
+
+(* ::Section:: *)
+(*Comparative Analysis Visualizations*)
+
+
+CompareChaosTypes[iterations_Integer: 500] := Module[
+  {bernoulli, fibonacci, nash, plot},
+  
+  bernoulli = SimulateBernoulliChaos[iterations, 12];
+  fibonacci = FibonacciChaosMap[iterations];
+  nash = MultiAgentChaosEquilibrium[5, iterations][[All, 2, 1]];
+  
+  plot = ListLinePlot[
+    {bernoulli, fibonacci, nash},
+    PlotStyle -> {
+      {Blue, Thick, Opacity[0.7]},
+      {Orange, Thick, Opacity[0.7]},
+      {Green, Thick, Opacity[0.7]}
+    },
+    PlotLabel -> Style["Chaos Type Comparison", Bold, 18],
+    AxesLabel -> {Style["Iteration", 14], Style["State Value", 14]},
+    PlotLegends -> Placed[
+      {Style["Bernoulli", 12], Style["Fibonacci", 12], Style["Nash Equilibrium", 12]},
+      Right
+    ],
+    ImageSize -> Large,
+    GridLines -> Automatic,
+    GridLinesStyle -> LightGray
+  ];
+  
+  plot
+]
+
+
+(* ::Section:: *)
+(*Export and Reporting*)
+
+
+ExportVisualization[graphic_, filename_String] := Module[{path},
+  path = FileNameJoin[{NotebookDirectory[], filename}];
+  Export[path, graphic, "PNG", ImageResolution -> 300];
+  Print[Style[StringTemplate["Exported to: ``"][path], Bold, Green]];
+]
+
+
+GenerateFullReport[steps_Integer: 500] := Module[{},
+  Print[Style["\n=== ChaosSim Full Visualization Report ===\n", Bold, 20, Blue]];
+  
+  Print[Style["1. Bernoulli Chaos Analysis:", Bold, 16]];
+  VisualizeBernoulliChaos[steps, 12];
+  
+  Print[Style["\n2. Fibonacci Chaos Patterns:", Bold, 16]];
+  VisualizeFibonacciChaos[100];
+  
+  Print[Style["\n3. Multi-Agent Nash Equilibrium:", Bold, 16]];
+  VisualizeMultiAgentChaos[5, steps];
+  
+  Print[Style["\n4. Unified Chaos System:", Bold, 16]];
+  VisualizeUnifiedChaos[steps];
+  
+  Print[Style["\n=== Report Complete ===\n", Bold, 20, Green]];
+]
+
+
+Print["Visualization functions loaded. Use GenerateFullReport[] to create complete analysis."]

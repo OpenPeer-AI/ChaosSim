@@ -1,0 +1,357 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* ChaosSim - Chaos Simulation System *)
+(* Combining Bernoulli Numbers, Fibonacci Sequences, and Nash Equilibrium *)
+
+(* ::Title:: *)
+(*ChaosSim: Advanced Chaos Simulation Framework*)
+
+
+(* ::Section:: *)
+(*Initialization and Setup*)
+
+
+(* Load utility functions *)
+Get[FileNameJoin[{NotebookDirectory[], "MathUtils.wl"}]]
+
+(* Set random seed for reproducibility (optional) *)
+(* SeedRandom[12345] *)
+
+
+(* ::Section:: *)
+(*Bernoulli Number-Based Chaos Generation*)
+
+
+(* ::Subsection:: *)
+(*Bernoulli Chaos Functions*)
+
+
+BernoulliChaosWeight[n_Integer] := Module[{b},
+  b = BernoulliB[n];
+  If[b == 0, 0.001, Abs[N[b]]]
+]
+
+
+SimulateBernoulliChaos[iterations_Integer, complexity_Integer: 10] := Module[
+  {weights, chaosSequence, currentState},
+  
+  weights = Table[BernoulliChaosWeight[i], {i, 2, complexity}];
+  weights = weights / Total[weights]; (* Normalize *)
+  
+  currentState = 0.5;
+  chaosSequence = Table[
+    currentState = Mod[
+      currentState + 
+      Sum[weights[[i]] * Sin[2 * Pi * currentState * i], {i, 1, Length[weights]}] +
+      RandomReal[{-0.1, 0.1}],
+      1.0
+    ],
+    {iterations}
+  ];
+  
+  chaosSequence
+]
+
+
+BernoulliAttractor[steps_Integer: 1000, dimension_Integer: 3] := Module[
+  {points, x, y, z, bn},
+  
+  x = 0.1; y = 0.1; z = 0.1;
+  
+  points = Table[
+    bn = BernoulliChaosWeight[Mod[i, 20] + 1];
+    x = Mod[x + bn * Sin[y] + 0.1 * RandomReal[], 2] - 1;
+    y = Mod[y + bn * Cos[z] + 0.1 * RandomReal[], 2] - 1;
+    z = Mod[z + bn * Sin[x] + 0.1 * RandomReal[], 2] - 1;
+    {x, y, z},
+    {i, 1, steps}
+  ];
+  
+  points
+]
+
+
+(* ::Section:: *)
+(*Fibonacci-Based Chaos Patterns*)
+
+
+(* ::Subsection:: *)
+(*Fibonacci Chaos Functions*)
+
+
+FibonacciChaosSequence[depth_Integer, variance_Real: 0.1] := Module[
+  {fibs, ratios, chaosSeq},
+  
+  (* Generate Fibonacci numbers *)
+  fibs = Table[Fibonacci[n], {n, 1, depth}];
+  
+  (* Calculate golden ratio approximations *)
+  ratios = Table[N[fibs[[i + 1]] / fibs[[i]]], {i, 1, depth - 1}];
+  
+  (* Create chaos from ratio deviations *)
+  chaosSeq = Table[
+    Mod[ratios[[i]] + variance * RandomReal[{-1, 1}], 2],
+    {i, 1, Length[ratios]}
+  ];
+  
+  chaosSeq
+]
+
+
+FibonacciSpiral3D[turns_Integer: 20, pointsPerTurn_Integer: 50] := Module[
+  {goldenAngle, points, theta, r, z, fib},
+  
+  goldenAngle = 2.0 * Pi * (1 - 1/GoldenRatio);
+  
+  points = Table[
+    fib = Fibonacci[Floor[i / 100] + 1];
+    theta = i * goldenAngle;
+    r = Sqrt[i] / Sqrt[turns * pointsPerTurn];
+    z = (i / (turns * pointsPerTurn)) * fib * 0.01;
+    {r * Cos[theta], r * Sin[theta], z + 0.01 * RandomReal[{-1, 1}]},
+    {i, 1, turns * pointsPerTurn}
+  ];
+  
+  points
+]
+
+
+FibonacciChaosMap[iterations_Integer: 1000] := Module[
+  {sequence, x, fn, fnMinus1},
+  
+  x = 0.5;
+  fn = 1; fnMinus1 = 1;
+  
+  sequence = Table[
+    (* Update Fibonacci numbers *)
+    {fn, fnMinus1} = {fn + fnMinus1, fn};
+    
+    (* Create chaotic map using Fibonacci ratio *)
+    x = Mod[
+      x * N[fn/fnMinus1] * (1 - x) + 0.05 * RandomReal[{-1, 1}],
+      1.0
+    ],
+    {i, 1, iterations}
+  ];
+  
+  sequence
+]
+
+
+(* ::Section:: *)
+(*Nash Equilibrium and Game Theory*)
+
+
+(* ::Subsection:: *)
+(*Game Theory Functions*)
+
+
+(* Two-player game Nash equilibrium finder *)
+FindNashEquilibrium[payoffMatrix1_List, payoffMatrix2_List] := Module[
+  {strategies1, strategies2, bestResponses1, bestResponses2, equilibria},
+  
+  (* Find best responses for player 1 *)
+  bestResponses1 = Table[
+    Position[payoffMatrix1[[All, j]], Max[payoffMatrix1[[All, j]]]],
+    {j, 1, Length[payoffMatrix1[[1]]]}
+  ];
+  
+  (* Find best responses for player 2 *)
+  bestResponses2 = Table[
+    Position[payoffMatrix2[[i, All]], Max[payoffMatrix2[[i, All]]]],
+    {i, 1, Length[payoffMatrix2]}
+  ];
+  
+  (* Find mutual best responses (pure strategy Nash equilibria) *)
+  equilibria = {};
+  Do[
+    If[MemberQ[Flatten[bestResponses1[[j]], 1], {i}] && 
+       MemberQ[Flatten[bestResponses2[[i]], 1], {j}],
+      AppendTo[equilibria, {i, j}]
+    ],
+    {i, 1, Length[payoffMatrix1]}, 
+    {j, 1, Length[payoffMatrix1[[1]]]}
+  ];
+  
+  equilibria
+]
+
+
+(* Chaotic game simulation with evolving payoffs *)
+ChaosGameSimulation[rounds_Integer, players_Integer: 2, volatility_Real: 0.2] := Module[
+  {payoffs, history, currentStrategy, equilibrium},
+  
+  (* Initialize random payoff matrices *)
+  payoffs = {
+    RandomReal[{-1, 1}, {3, 3}],
+    RandomReal[{-1, 1}, {3, 3}]
+  };
+  
+  history = Table[
+    (* Find Nash equilibrium *)
+    equilibrium = FindNashEquilibrium[payoffs[[1]], payoffs[[2]]];
+    
+    (* Record current state *)
+    currentStrategy = If[Length[equilibrium] > 0, 
+      equilibrium[[1]], 
+      {RandomInteger[{1, 3}], RandomInteger[{1, 3}]}
+    ];
+    
+    (* Evolve payoff matrices chaotically *)
+    payoffs = Map[
+      # + volatility * RandomReal[{-1, 1}, Dimensions[#]] &,
+      payoffs
+    ];
+    
+    {round, currentStrategy, equilibrium},
+    {round, 1, rounds}
+  ];
+  
+  history
+]
+
+
+(* Nash equilibrium in chaos: Multiple agents competing *)
+MultiAgentChaosEquilibrium[agents_Integer: 5, iterations_Integer: 100] := Module[
+  {states, fitness, chaos},
+  
+  (* Initialize agent states *)
+  states = RandomReal[{0, 1}, agents];
+  
+  chaos = Table[
+    (* Calculate fitness based on Bernoulli-weighted distance *)
+    fitness = Table[
+      Sum[
+        BernoulliChaosWeight[j] * Abs[states[[i]] - states[[j]]],
+        {j, 1, agents}
+      ],
+      {i, 1, agents}
+    ];
+    
+    (* Update states toward Nash equilibrium (minimize conflict) *)
+    states = Table[
+      Mod[
+        states[[i]] + 
+        0.1 * (Mean[states] - states[[i]]) + 
+        0.05 * RandomReal[{-1, 1}],
+        1.0
+      ],
+      {i, 1, agents}
+    ];
+    
+    {iter, states, fitness},
+    {iter, 1, iterations}
+  ];
+  
+  chaos
+]
+
+
+(* ::Section:: *)
+(*Combined Chaos Simulation*)
+
+
+(* ::Subsection:: *)
+(*Integrated Chaos Functions*)
+
+
+UnifiedChaosSimulation[steps_Integer: 500] := Module[
+  {bernoulliComponent, fibonacciComponent, gameComponent, combined},
+  
+  (* Generate all three components *)
+  bernoulliComponent = SimulateBernoulliChaos[steps, 15];
+  fibonacciComponent = FibonacciChaosMap[steps];
+  gameComponent = MultiAgentChaosEquilibrium[5, steps];
+  
+  (* Combine into unified chaos signature *)
+  combined = Table[
+    {
+      bernoulliComponent[[i]],
+      fibonacciComponent[[i]],
+      Mean[gameComponent[[i, 2]]]
+    },
+    {i, 1, steps}
+  ];
+  
+  combined
+]
+
+
+ChaosCorrelationAnalysis[data_List] := Module[
+  {bernoulli, fibonacci, nash, correlations},
+  
+  bernoulli = data[[All, 1]];
+  fibonacci = data[[All, 2]];
+  nash = data[[All, 3]];
+  
+  correlations = {
+    {"Bernoulli-Fibonacci", Correlation[bernoulli, fibonacci]},
+    {"Bernoulli-Nash", Correlation[bernoulli, nash]},
+    {"Fibonacci-Nash", Correlation[fibonacci, nash]}
+  };
+  
+  correlations
+]
+
+
+(* ::Section:: *)
+(*Visualization Helpers*)
+
+
+PlotBernoulliChaos[data_List] := 
+  ListPlot[data, 
+    PlotStyle -> {Blue, PointSize[Small]},
+    PlotLabel -> "Bernoulli Number Chaos",
+    AxesLabel -> {"Iteration", "State"},
+    ImageSize -> Large
+  ]
+
+
+PlotFibonacciChaos[data_List] := 
+  ListPlot[data,
+    PlotStyle -> {Orange, PointSize[Small]},
+    PlotLabel -> "Fibonacci Chaos Sequence",
+    AxesLabel -> {"Iteration", "State"},
+    ImageSize -> Large
+  ]
+
+
+Plot3DChaos[points_List] := 
+  ListPointPlot3D[points,
+    PlotStyle -> {ColorFunction -> "Rainbow", PointSize[Tiny]},
+    BoxRatios -> {1, 1, 1},
+    ImageSize -> Large,
+    PlotLabel -> "3D Chaos Attractor"
+  ]
+
+
+(* ::Section:: *)
+(*Example Usage*)
+
+
+(* Uncomment to run examples *)
+(*
+Print["=== ChaosSim Initialized ==="]
+Print["Generating Bernoulli Chaos..."]
+bernoulliData = SimulateBernoulliChaos[500, 12];
+PlotBernoulliChaos[bernoulliData]
+
+Print["Generating Fibonacci Chaos..."]
+fibData = FibonacciChaosSequence[100, 0.15];
+PlotFibonacciChaos[fibData]
+
+Print["Finding Nash Equilibrium..."]
+payoff1 = {{3, 0}, {5, 1}};
+payoff2 = {{3, 5}, {0, 1}};
+equilibria = FindNashEquilibrium[payoff1, payoff2]
+
+Print["Running Unified Chaos Simulation..."]
+unified = UnifiedChaosSimulation[300];
+correlations = ChaosCorrelationAnalysis[unified]
+*)
+
+
+Print["ChaosSim loaded successfully. All functions available."]
